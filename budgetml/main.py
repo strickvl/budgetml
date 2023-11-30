@@ -91,8 +91,7 @@ class BudgetML:
                 base_path, 'template-compose.yaml')
 
         with open(docker_compose_path, 'r') as f:
-            docker_compose_content = f.read()
-            return docker_compose_content
+            return f.read()
 
     def get_nginx_conf_contents(self,
                                 domain: Text,
@@ -134,7 +133,7 @@ class BudgetML:
         script = '#!/bin/bash' + '\n'
 
         # become superuser
-        script += f'sudo -s' + '\n'
+        script += 'sudo -s' + '\n'
 
         # create context
         script += f'mkdir {context_dir}' + '\n'
@@ -144,28 +143,28 @@ class BudgetML:
 
         # get metadata
         script += 'export DOCKER_TEMPLATE=$(curl ' \
-                  'http://metadata.google.internal/computeMetadata/v1' \
-                  '/instance/attributes/DOCKER_TEMPLATE -H "Metadata-Flavor: ' \
-                  '' \
-                  '' \
-                  '' \
-                  '' \
-                  '' \
-                  'Google")' + '\n'
+                      'http://metadata.google.internal/computeMetadata/v1' \
+                      '/instance/attributes/DOCKER_TEMPLATE -H "Metadata-Flavor: ' \
+                      '' \
+                      '' \
+                      '' \
+                      '' \
+                      '' \
+                      'Google")' + '\n'
         script += 'export REQUIREMENTS=$(curl ' \
-                  'http://metadata.google.internal/computeMetadata/v1' \
-                  '/instance/attributes/REQUIREMENTS -H "Metadata-Flavor: ' \
-                  'Google")' + '\n'
+                      'http://metadata.google.internal/computeMetadata/v1' \
+                      '/instance/attributes/REQUIREMENTS -H "Metadata-Flavor: ' \
+                      'Google")' + '\n'
         script += 'export DOCKER_COMPOSE_TEMPLATE=$(curl ' \
-                  'http://metadata.google.internal/computeMetadata/v1' \
-                  '/instance/attributes/DOCKER_COMPOSE_TEMPLATE -H ' \
-                  '"Metadata-Flavor: ' \
-                  'Google")' + '\n'
+                      'http://metadata.google.internal/computeMetadata/v1' \
+                      '/instance/attributes/DOCKER_COMPOSE_TEMPLATE -H ' \
+                      '"Metadata-Flavor: ' \
+                      'Google")' + '\n'
         script += 'export NGINX_CONF_TEMPLATE=$(curl ' \
-                  'http://metadata.google.internal/computeMetadata/v1' \
-                  '/instance/attributes/NGINX_CONF_TEMPLATE -H ' \
-                  '"Metadata-Flavor: ' \
-                  'Google")' + '\n'
+                      'http://metadata.google.internal/computeMetadata/v1' \
+                      '/instance/attributes/NGINX_CONF_TEMPLATE -H ' \
+                      '"Metadata-Flavor: ' \
+                      'Google")' + '\n'
 
         # delete temporary files
         script += f'rm {template_dockerfile_location}' + '\n'
@@ -175,17 +174,17 @@ class BudgetML:
 
         # write temporary files
         script += f'echo $DOCKER_TEMPLATE | base64 --decode >> ' \
-                  f'{template_dockerfile_location}' + '\n'
+                      f'{template_dockerfile_location}' + '\n'
         script += f'echo $REQUIREMENTS | base64 --' \
-                  f'decode >> {requirements_location}' + '\n'
+                      f'decode >> {requirements_location}' + '\n'
         script += f'echo $DOCKER_COMPOSE_TEMPLATE | base64 --decode >> ' \
-                  f'{template_dockercompose_location}' + '\n'
+                      f'{template_dockercompose_location}' + '\n'
         script += f'echo $NGINX_CONF_TEMPLATE | base64 --' \
-                  f'decode >> {nginx_conf_location}' + '\n'
+                      f'decode >> {nginx_conf_location}' + '\n'
 
         # export env variables
         script += f'export BUDGET_PREDICTOR_PATH=gs://{bucket}/' \
-                  f'{predictor_gcs_path}' + '\n'
+                      f'{predictor_gcs_path}' + '\n'
         script += f'export BUDGET_PREDICTOR_ENTRYPOINT={entrypoint}' + '\n'
         script += f'export BUDGET_DOMAIN={domain}' + '\n'
         script += f'export BUDGET_USERNAME={username}' + '\n'
@@ -200,39 +199,29 @@ class BudgetML:
         script += f'export BUDGET_TOKEN={str(uuid4())}' + '\n'
 
         # install docker if it doesnt exist
-        script += f'if [ -x "$(command -v docker)" ]; then' + '\n'
+        script += 'if [ -x "$(command -v docker)" ]; then' + '\n'
         script += '    echo "Docker already installed"' + '\n'
-        script += f'else' + '\n'
+        script += 'else' + '\n'
         script += '    sudo apt-get update' + '\n'
         script += '    sudo apt-get -y install apt-transport-https ' \
-                  'ca-certificates curl gnupg-agent ' \
-                  'software-properties-common' + '\n'
+                      'ca-certificates curl gnupg-agent ' \
+                      'software-properties-common' + '\n'
         script += '    curl -fsSL ' \
-                  'https://download.docker.com/linux/ubuntu/gpg | sudo ' \
-                  'apt-key add -' + '\n'
+                      'https://download.docker.com/linux/ubuntu/gpg | sudo ' \
+                      'apt-key add -' + '\n'
         script += '    sudo add-apt-repository "deb [arch=amd64] ' \
-                  'https://download.docker.com/linux/ubuntu $(lsb_release ' \
-                  '-cs) stable"' + '\n'
+                      'https://download.docker.com/linux/ubuntu $(lsb_release ' \
+                      '-cs) stable"' + '\n'
         script += '    sudo apt-get update' + '\n'
         script += '    sudo apt-get -y install docker-ce docker-ce-cli ' \
-                  'containerd.io' + '\n'
+                      'containerd.io' + '\n'
         script += 'fi' + '\n'
 
         # run docker-compose
-        script += \
-            'docker run ' \
-            f'-e BUDGET_PREDICTOR_PATH=$BUDGET_PREDICTOR_PATH ' \
-            f'-e BUDGET_PREDICTOR_ENTRYPOINT=$BUDGET_PREDICTOR_ENTRYPOINT ' \
-            f'-e BUDGET_USERNAME=$BUDGET_USERNAME ' \
-            f'-e BUDGET_PWD=$BUDGET_PWD ' \
-            f'-e BUDGET_DOMAIN=$BUDGET_DOMAIN ' \
-            f'-e BUDGET_SUBDOMAIN=$BUDGET_SUBDOMAIN ' \
-            f'-e BUDGET_NGINX_PATH=$BUDGET_NGINX_PATH ' \
-            f'-e BUDGET_CERTS_PATH=$BUDGET_CERTS_PATH ' \
-            f'-e BASE_IMAGE=$BASE_IMAGE ' \
-            f'-e BUDGET_TOKEN=$BUDGET_TOKEN ' \
-            '--rm -v /var/run/docker.sock:/var/run/docker.sock -v ' \
-            '"$PWD:$PWD" -w="$PWD" docker/compose:1.24.0 up -d' + '\n'
+        script += (
+            'docker run -e BUDGET_PREDICTOR_PATH=$BUDGET_PREDICTOR_PATH -e BUDGET_PREDICTOR_ENTRYPOINT=$BUDGET_PREDICTOR_ENTRYPOINT -e BUDGET_USERNAME=$BUDGET_USERNAME -e BUDGET_PWD=$BUDGET_PWD -e BUDGET_DOMAIN=$BUDGET_DOMAIN -e BUDGET_SUBDOMAIN=$BUDGET_SUBDOMAIN -e BUDGET_NGINX_PATH=$BUDGET_NGINX_PATH -e BUDGET_CERTS_PATH=$BUDGET_CERTS_PATH -e BASE_IMAGE=$BASE_IMAGE -e BUDGET_TOKEN=$BUDGET_TOKEN --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD:$PWD" -w="$PWD" docker/compose:1.24.0 up -d'
+            + '\n'
+        )
 
         script += 'docker pull google/cloud-sdk:324.0.0' + '\n'
 
@@ -251,7 +240,7 @@ class BudgetML:
         return shutdown_script
 
     def create_cloud_function(self, instance_name, topic):
-        function_name = 'function-' + instance_name
+        function_name = f'function-{instance_name}'
         create_gcp_function(
             self.project,
             self.region,
@@ -299,7 +288,7 @@ class BudgetML:
             bucket_name = f'budget_bucket_{self.unique_id}'
         if instance_name is None:
             instance_name = f'budget-instance-' \
-                            f'{self.unique_id.replace("_", "-")}'
+                                f'{self.unique_id.replace("_", "-")}'
 
         static_ip_name = f'ip-{instance_name}'
 
@@ -312,7 +301,7 @@ class BudgetML:
         create_bucket_if_not_exists(bucket_name)
 
         # create topic name
-        topic = 'topic-' + instance_name
+        topic = f'topic-{instance_name}'
 
         # create cloud function
         self.create_cloud_function(instance_name, topic)

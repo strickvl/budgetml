@@ -12,8 +12,7 @@ from budgetml.gcp.pubsub import create_topic
 
 def get_api():
     service = googleapiclient.discovery.build('cloudfunctions', 'v1')
-    cloud_functions_api = service.projects().locations().functions()
-    return cloud_functions_api
+    return service.projects().locations().functions()
 
 
 def zipdir(path, ziph):
@@ -55,11 +54,11 @@ def create_cloud_function(
     # create pubsub topic
     full_topic = create_topic(project, topic)
 
-    parent = 'projects/{}/locations/{}'.format(project, region)
+    parent = f'projects/{project}/locations/{region}'
 
     upload_url = create_upload_url(parent)
     config = {
-        "name": parent + '/functions/' + function_name,
+        "name": f'{parent}/functions/{function_name}',
         "entryPoint": "launch",
         "runtime": "python37",
         "availableMemoryMb": 128,
@@ -67,13 +66,13 @@ def create_cloud_function(
         "environmentVariables": {
             "BUDGET_PROJECT": project,
             "BUDGET_ZONE": instance_zone,
-            "BUDGET_INSTANCE": instance_name
+            "BUDGET_INSTANCE": instance_name,
         },
         "sourceUploadUrl": upload_url,
         "eventTrigger": {
             "eventType": "providers/cloud.pubsub/eventTypes/topic.publish",
-            "resource": f"{full_topic}"
-        }
+            "resource": f"{full_topic}",
+        },
     }
 
     logging.debug(f'Creating function with config: {config}')
@@ -85,7 +84,7 @@ def create_cloud_function(
 
 
 def delete_cloud_function(project, region, function_name):
-    parent = 'projects/{}/locations/{}'.format(project, region)
+    parent = f'projects/{project}/locations/{region}'
     full_name = f'{parent}/functions/{function_name}'
     res = get_api().delete(
         name=full_name).execute()

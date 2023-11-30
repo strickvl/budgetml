@@ -12,11 +12,7 @@ def upload_blob(bucket_name, source_file_name, destination_blob_name):
 
     blob.upload_from_filename(source_file_name)
 
-    logging.debug(
-        "File {} uploaded to {}.".format(
-            source_file_name, destination_blob_name
-        )
-    )
+    logging.debug(f"File {source_file_name} uploaded to {destination_blob_name}.")
 
 
 def create_bucket_if_not_exists(bucket_name):
@@ -26,12 +22,9 @@ def create_bucket_if_not_exists(bucket_name):
     try:
         new_bucket = storage_client.create_bucket(bucket, location="us")
         logging.debug(
-            "Created bucket {} in {} with storage class {}".format(
-                new_bucket.name, new_bucket.location, new_bucket.storage_class)
+            f"Created bucket {new_bucket.name} in {new_bucket.location} with storage class {new_bucket.storage_class}"
         )
         return new_bucket
     except Conflict:
-        logging.debug(
-            "Bucket {} in {} already exists".format(
-                bucket.name, bucket.location))
+        logging.debug(f"Bucket {bucket.name} in {bucket.location} already exists")
         return bucket
