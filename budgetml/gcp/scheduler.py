@@ -34,5 +34,5 @@ def create_scheduler_job(
         }
     )
 
-    logging.debug('Created scheduler job: {}'.format(response.name))
+    logging.debug(f'Created scheduler job: {response.name}')
     return response

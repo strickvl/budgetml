@@ -22,8 +22,8 @@ def import_class_from_source(source_path: Text, class_name: Text) -> Type[Any]:
         return getattr(module, class_name)
     except IOError:
         raise ImportError(
-            '{} in {} not found in import_func_from_source()'.format(
-                class_name, source_path))
+            f'{class_name} in {source_path} not found in import_func_from_source()'
+        )
 
 
 def download_blob(bucket_name, source_blob_name, destination_file_name):
@@ -43,11 +43,7 @@ def download_blob(bucket_name, source_blob_name, destination_file_name):
     blob = bucket.blob(source_blob_name)
     blob.download_to_filename(destination_file_name)
 
-    print(
-        "Blob {} downloaded to {}.".format(
-            source_blob_name, destination_file_name
-        )
-    )
+    print(f"Blob {source_blob_name} downloaded to {destination_file_name}.")
 
 
 def get_predictor_class(path: Text, entrypoint: Text):
